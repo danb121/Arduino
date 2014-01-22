@@ -1,17 +1,16 @@
-
 //Import LCD library
 #include <LiquidCrystal.h>
 
 //These values won't change
-#define BUTTON_DOWN_RIGHT A2
-#define BUTTON_UP_LEFT A3
+#define BUTTON_IP A3
 
 #define NONE 0
 #define LEFT 1
 #define RIGHT 2
 #define UP 4
 #define DOWN 8
-#define ALL 16
+#define ENTER 16
+#define ALL 32
 
 int buttonPressed = 0;  //Have any buttons been pressed, used for leaving the front screen
 int lastButton = 0; //Not used at the moment
@@ -70,8 +69,7 @@ byte left[8] ={
 
 void setup()
 {
-  pinMode(BUTTON_UP_LEFT, INPUT);
-  pinMode(BUTTON_DOWN_RIGHT, INPUT);
+  pinMode(BUTTON_IP, INPUT);
   lcd.begin(16,2);
   Serial.begin(9600);
   lcd.createChar(1,down);
@@ -105,6 +103,7 @@ void loop()
 {
   //Check for button input
   button = checkButton();
+  Serial.println (button);
   //Go to Frontscreen
   frontscreen ();
   delay(250);
@@ -120,23 +119,24 @@ void loop()
 byte checkButton()
 {
   //Assign variable for reading input
-  int a1 = analogRead(BUTTON_UP_LEFT);
-  int a2 = analogRead(BUTTON_DOWN_RIGHT);
+  int a1 = analogRead(BUTTON_IP);
 
   //Check Input and return value based on buttons pressed
-  if (a1 < 700 && a2 < 700){
+  if (a1 > 245 && a1 < 275){
     reset();
   }
-  if (a1 > 500 && a2 > 500)
+  if (a1 > 900)
     return NONE;
-  if (a1 < 10)
-    return LEFT;
-  if (a1 > 10 && a1 < 500)
-    return UP;
-  if (a2 < 10)
-    return DOWN;
-  if (a2 > 10 && a2 < 500)
+  if (a1 > 160 && a1 < 190)
     return RIGHT;
+  if (a1 > 330 && a1 < 360)
+    return DOWN;
+  if (a1 > 500 && a1 < 530)
+    return ENTER;
+  if (a1 > 670 && a1 < 700)
+    return LEFT;
+  if (a1 > 840 && a1 < 870)
+    return UP;
 }
 
 //Work out menu position based on button pressed
@@ -195,7 +195,7 @@ void displaymenu()
   } else if (currentMenu > 3 && currentMenu < 10){
     currentMenu = 3;
   }
-  Serial.println(currentMenu);
+  //Serial.println(currentMenu);
   //switchcase statements to display text and set variables based on currentmenu
   switch(currentMenu) {
   case 1:
