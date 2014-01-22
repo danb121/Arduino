@@ -1,3 +1,11 @@
+//
+//Camera Controller with LCD
+//
+//Daniel Borg
+//22 Jan 2014
+//
+//
+
 //Import LCD library
 #include <LiquidCrystal.h>
 
@@ -12,7 +20,7 @@
 #define ENTER 16
 #define ALL 32
 
-int buttonPressed = 0;  //Have any buttons been pressed, used for leaving the front screen
+int menuEntered = 0;  //Have any buttons been pressed, used for leaving the front screen
 int lastButton = 0; //Not used at the moment
 int currentMenu = 1; //Keep track on the current menu number
 int intervalometerMenu = 0; //Has this menu been accessed
@@ -89,7 +97,7 @@ void reset()
   lcd.print("Welcome");
   delay(3000);
   lcd.clear();
-  buttonPressed = 0;
+  menuEntered = 0;
   lastButton = 0;
   currentMenu = 1;
   intervalometerMenu = 0;
@@ -142,7 +150,7 @@ byte checkButton()
 //Work out menu position based on button pressed
 void menupos(int state, int& pos)
 {
-  if (state == 2) {
+  if (state == 16) {
     pos = pos * 10;
     }
   if (state == 4) {
@@ -163,23 +171,23 @@ void frontscreen()
     light();
   } else if (soundMenu == 1){
     sound();
-  } else if (buttonPressed == 1){
+  } else if (menuEntered == 1){
     displaymenu();
-  } else if (button == 1 || button == 2 || button == 4 || button == 8){
-    buttonPressed = 1;
+  } else if (button == 16){
+    menuEntered = 1;
   } else {
     lcd.setCursor(0,0);
-    lcd.print("Use Arrows To");
+    lcd.print("Press Enter to");
     lcd.setCursor(0,1);
-    lcd.print("Select Menu");
-    lcd.setCursor(12,1);
-    lcd.write(1);
-    lcd.setCursor(13,1);
-    lcd.write(2);
-    lcd.setCursor(14,1);
-    lcd.write(3);
-    lcd.setCursor(15,1);
-    lcd.write(4);
+    lcd.print("Continue");
+    //lcd.setCursor(12,1);
+    //lcd.write(1);
+    //lcd.setCursor(13,1);
+    //lcd.write(2);
+    //lcd.setCursor(14,1);
+    //lcd.write(3);
+    //lcd.setCursor(15,1);
+    //lcd.write(4);
   }
 }
 
@@ -190,7 +198,7 @@ void displaymenu()
   menupos(button, currentMenu);
   
   //If statement to make sure that the currentmenu doesn't got out of scope
-  if (currentMenu < 1){
+  if (currentMenu <= 1){
     currentMenu = 1;
   } else if (currentMenu > 3 && currentMenu < 10){
     currentMenu = 3;
@@ -242,63 +250,46 @@ void intervalometer()
   switch(currentMenu) {
   case 10:
     lcd.clear();
-    lcd.cursor();
     lcd.setCursor(0,0);
     lcd.print("Shutter Duration");
     lcd.setCursor(0,1);
     lcd.print("00h 00m 00s");
+    lcd.setCursor(0,1);
+    lcd.cursor();
     break;
   case 11:
     lcd.clear();
     lcd.setCursor(0,0);
-    lcd.print("Shutter Duration");
-    lcd.cursor();
-    lcd.setCursor(0,1);
-    lcd.print("00h 00m 00s");
-    break;
-   case 12:
-    lcd.clear();
-    lcd.cursor();
-    lcd.setCursor(0,0);
     lcd.print("Shot Delay");
     lcd.setCursor(0,1);
     lcd.print("00h 00m 00s");
+    lcd.setCursor(0,1);
+    lcd.cursor();
+    break;
+  case 12:
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("Num Shots");
+    lcd.setCursor(0,1);
+    lcd.print("00000");
+    lcd.setCursor(0,1);
+    lcd.cursor();
     break;
   case 13:
     lcd.clear();
     lcd.setCursor(0,0);
-    lcd.print("Shot Delay");
-    lcd.cursor();
-    lcd.setCursor(0,1);
-    lcd.print("00h 00m 00s");
-    break;
-    case 14:
-    lcd.clear();
-    lcd.cursor();
-    lcd.setCursor(0,0);
-    lcd.print("Num Shots");
-    lcd.setCursor(0,1);
-    lcd.print("00000");
-    break;
-  case 15:
-    lcd.clear();
-    lcd.setCursor(0,0);
-    lcd.print("Num Shots");
-    lcd.cursor();
-    lcd.setCursor(0,1);
-    lcd.print("00000");
-    break;
-   case 16:
-    lcd.clear();
-    lcd.setCursor(0,0);
     lcd.print("Back");
+    lcd.setCursor(0,0);
+    lcd.cursor();
+  break;
+  case 130:
+    lcd.noCursor();
+    currentMenu = 1;
+    button = NONE;
+    menuEntered = 1;
+    intervalometerMenu = 0;
+    frontscreen();
     break;
-   case 160:
-     currentMenu = 0;
-     buttonPressed = 1;
-     intervalometerMenu = 0;
-     frontscreen();
-     break;
   }
 }
 
