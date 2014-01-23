@@ -10,6 +10,7 @@
 #include <LiquidCrystal.h>
 
 //These values won't change
+#define BUTTON_MENU A2
 #define BUTTON_IP A3
 
 #define NONE 0
@@ -18,7 +19,9 @@
 #define UP 4
 #define DOWN 8
 #define ENTER 16
-#define ALL 32
+#define M_UP 32
+#define M_DOWN 64
+//#define ALL 128
 
 int menuEntered = 0;  //Have any buttons been pressed, used for leaving the front screen
 int lastButton = 0; //Not used at the moment
@@ -78,6 +81,7 @@ byte left[8] ={
 
 void setup()
 {
+  pinMode(BUTTON_MENU, INPUT);
   pinMode(BUTTON_IP, INPUT);
   lcd.begin(16,2);
   Serial.begin(9600);
@@ -113,7 +117,9 @@ void loop()
 {
   //Check for button input
   button = checkButton();
-  Serial.println (button);
+  
+//  Serial.println (button);
+  
   //Go to Frontscreen
   frontscreen ();
   delay(150);
@@ -130,23 +136,33 @@ byte checkButton()
 {
   //Assign variable for reading input
   int a1 = analogRead(BUTTON_IP);
-
+  int a2 = analogRead(BUTTON_MENU);
+  
+//  Serial.print ("a1 = ");
+//  Serial.println (a1);
+//  Serial.print ("a2 = ");
+//  Serial.println (a2);
+  
   //Check Input and return value based on buttons pressed
   if (a1 > 245 && a1 < 275){
     reset();
   }
   if (a1 > 950)
     return NONE;
-  if (a1 > 110 && a1 < 240)
+  if (a1 > 160 && a1 < 190)
     return RIGHT;
-  if (a1 > 280 && a1 < 410)
+  if (a1 > 330 && a1 < 360)
     return DOWN;
-  if (a1 > 450 && a1 < 580)
+  if (a1 > 500 && a1 < 530)
     return ENTER;
-  if (a1 > 620 && a1 < 750)
+  if (a1 > 670 && a1 < 700)
     return LEFT;
-  if (a1 > 790 && a1 < 920)
+  if (a1 > 840 && a1 < 870)
     return UP;
+  if (a2 < 20)
+    return M_UP;
+  if (a2 > 70 && a2 < 120)
+    return M_DOWN;
 }
 
 //Work out menu position based on button pressed
@@ -155,10 +171,10 @@ void menupos(int state, int& pos)
   if (state == 16) {
     pos = pos * 10;
     }
-  if (state == 4) {
+  if (state == 32) {
     pos = pos - 1;
     }
-  if (state == 8) {
+  if (state == 64) {
     pos = pos + 1;
     }
 }
@@ -205,10 +221,17 @@ void displaymenu()
   } else if (currentMenu > 3 && currentMenu < 10){
     currentMenu = 3;
   }
-  //Serial.println(currentMenu);
+    Serial.print ("button = ");
+    Serial.println (button);  
+    Serial.print ("Current Menu = ");
+    Serial.println(currentMenu);
+    Serial.print ("Last Menu = ");
+    Serial.println(lastMenu);
+
   //Check to see if the menu has changed
   if (currentMenu != lastMenu){
-  //switchcase statements to display text and set variables based on currentmenu
+  
+    //switchcase statements to display text and set variables based on currentmenu
     switch(currentMenu) {
     case 1:
       lastMenu = currentMenu;
@@ -229,15 +252,12 @@ void displaymenu()
       lcd.print("Sound Trigger");
       break;
     case 10:
-      lastMenu = currentMenu;
       intervalometerMenu = 1;
       break;
     case 20:
-      lastMenu = currentMenu;
       lightMenu = 1;
       break;
     case 30:
-      lastMenu = currentMenu;
       soundMenu = 1;
       break;
     }
@@ -251,14 +271,20 @@ void intervalometer()
   menupos(button, currentMenu);
   
     //If statement to make sure that the currentmenu doesn't got out of scope
-  if (currentMenu <= 10){
+  if (currentMenu <= 10 || currentMenu == 100){
     currentMenu = 10;
-  } else if (currentMenu >= 16 && currentMenu < 20){
-    currentMenu = 16;
+  } else if (currentMenu >= 13 && currentMenu < 20){
+    currentMenu = 13;
   }
-    Serial.println(currentMenu);
+  
+//    Serial.print ("Current Menu = ");
+//    Serial.println(currentMenu);
+//    Serial.print ("Last Menu = ");
+//    Serial.println(lastMenu);
+
     //Check to see if the menu has changed
   if (currentMenu != lastMenu){
+    
     //switchcase statements to display text and set variables based on currentmenu
     switch(currentMenu) {
     case 10:
@@ -292,6 +318,7 @@ void intervalometer()
       lcd.cursor();
       break;
     case 13:
+      lastMenu = currentMenu;
       lcd.clear();
       lcd.setCursor(0,0);
       lcd.print("Back");
