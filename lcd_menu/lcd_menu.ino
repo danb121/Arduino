@@ -24,15 +24,16 @@
 //#define ALL 128
 
 int menuEntered = 0;  //Have any buttons been pressed, used for leaving the front screen
-int lastButton = 0; //Not used at the moment
 int currentMenu = 1; //Keep track on the current menu number
 int lastMenu = 0; //Used to see if the menu has changed
 int intervalometerMenu = 0; //Has this menu been accessed
 int lightMenu = 0;  //Has this menu been accessed
 int soundMenu = 0;  //Has this menu been accessed
-int x = 0;  //Cursor position
-int y = 0;  //Cursor position
-int button;  //Not used at the moment
+int button;  //Used to hold button state
+int lastButton = 0; //Not used at the moment
+int cursorMoved = 0; //Used to hold if the cursor has been adjusted state
+int x = 0;  // Left to Right Cursor position
+int y = 0;  //Up and Down Cursor position
 
 //LCD I/O Pins
 LiquidCrystal lcd(12,11,8,7,6,5);
@@ -118,17 +119,9 @@ void loop()
   //Check for button input
   button = checkButton();
   
-//  Serial.println (button);
-  
   //Go to Frontscreen
   frontscreen ();
   delay(150);
-/*
-  //menuposmenupos(button, x, y);
-  lcd.cursor();
-  lcd.setCursor(x,y);
-  delay(100);
-*/
 }
 
 //Check for button input
@@ -177,6 +170,34 @@ void menupos(int state, int& pos)
   if (state == 64) {
     pos = pos + 1;
     }
+}
+
+void curpos(int state, int& posx, int& posy)
+{
+  if (state == 1) {
+    posx = posx - 1;
+    if (posx <= 0){
+      posx = 0;
+    }
+  }
+  if (state == 2) {
+    posx = posx + 1;
+    if (posx >= 16){
+      posx = 16;
+    }
+  }
+  if (state == 4) {
+    posy = posy - 1;
+    if (posy <= 0){
+      posy = 0;
+    }
+  }
+  if (state == 8) {
+    posy = posy + 1;
+    if (posy >= 1){
+      posy = 1;
+    }
+  }
 }
 
 //Front screen
@@ -282,8 +303,11 @@ void intervalometer()
 //    Serial.print ("Last Menu = ");
 //    Serial.println(lastMenu);
 
+  if (button == 1 || button == 2 || button == 4 || button == 8){
+    cursorMoved = 1;
+  }
     //Check to see if the menu has changed
-  if (currentMenu != lastMenu){
+  if (currentMenu != lastMenu || cursorMoved == 1){
     
     //switchcase statements to display text and set variables based on currentmenu
     switch(currentMenu) {
@@ -294,8 +318,15 @@ void intervalometer()
       lcd.print("Shutter Duration");
       lcd.setCursor(0,1);
       lcd.print("00h 00m 00s");
-      lcd.setCursor(0,1);
-      lcd.cursor();
+      Serial.println (button);
+      if (cursorMoved == 1){
+        
+        //use curpos function to update the current cursor position based on button pressed
+        curpos(button, x, y);
+      
+        lcd.setCursor(x,x);
+        lcd.cursor();
+      }
       break;
     case 11:
       lastMenu = currentMenu;
