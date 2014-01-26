@@ -282,7 +282,7 @@ void displaymenu()
 }
 
 //Timer Start
-void timer(unsigned long millisTimer)
+void timer(unsigned long millisTimer, int s, int d, int i)
 {
   char buffer[20];
   int days, hours, mins, secs;
@@ -292,6 +292,8 @@ void timer(unsigned long millisTimer)
   unsigned long totalTimeLeft = millisTimer + millis();
   unsigned long timeLeft;
   long previousMillis = 0;
+  int textShutter = s;
+  int textDelay = d;
   
   while (totalTimeLeft >= currentMillis) {
     // inttime is the total number of number of seconds
@@ -299,6 +301,11 @@ void timer(unsigned long millisTimer)
     
     currentMillis = millis();
     timeLeft = totalTimeLeft - currentMillis;
+    
+    Serial.print("Shutter text ");
+    Serial.println(textShutter);
+    Serial.print("Delay Text: ");
+    Serial.println(textDelay);
     
     #ifdef DEBUG
     Serial.print("Current Time: ");
@@ -309,7 +316,6 @@ void timer(unsigned long millisTimer)
     
     inttime  = timeLeft / 1000;
     fractime = timeLeft % 1000;
-    
 
     // Now, inttime is the remainder after subtracting the number of seconds
     // in the number of days
@@ -333,10 +339,25 @@ void timer(unsigned long millisTimer)
 
     // Don't bother to print days
     sprintf(buffer, "%02dh %02dm %02ds", hours, mins, secs);
-    delay(200);
-    lcd.clear();
-    lcd.setCursor(0,0);
-    lcd.print(buffer);
+    
+    //Desplay text based on whether the shutter is open or waiting for the next photo
+    if (textShutter == 1){
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print ("Taking Pic ");
+      lcd.print (i);
+      lcd.setCursor(0,1);
+      lcd.print(buffer);
+    } else if (textDelay ==1){
+        lcd.clear();
+        lcd.setCursor(0,0);
+        lcd.print ("Next Pic ");
+        lcd.print (i + 1);
+        lcd.print (" in");
+        lcd.setCursor(0,1);
+        lcd.print(buffer);
+     }
+     delay(500);
   }
 }
 
@@ -356,6 +377,7 @@ void intervalometer_start()
   unsigned int delayS = ((delayTime[4]*10000)+(delayTime[5]*1000));
   unsigned long millisDelayTime = (delayHM+delayS);
   
+  //Get the number of shots from array and convert to an "Int"... the reason for converting to an "Int" is for using in a "for loop"
   totalShots += numShots[0];
   totalShots += numShots[1];
   totalShots += numShots[2];
@@ -364,9 +386,19 @@ void intervalometer_start()
   int totalNumShots = totalShots.toInt();
   Serial.println(totalNumShots);
 
+  //variables to tell the timer whether it's display shutter info or shot delay info
+  int s = 0;
+  int d = 0;
+  
+  //Loop around the number of shots that have been set... a quick test is included to stop the delay after the last photo is taken
   for (int i=0; i < totalNumShots; i++){
-    timer(millisShutterTime);
-    timer(millisDelayTime);
+    if (i == totalNumShots - 1) {
+        timer(millisShutterTime, s = 1, d = 0, i+1);
+        break;
+     } else if (i < totalNumShots){
+          timer(millisShutterTime, s = 1, d = 0, i+1);
+          timer(millisDelayTime, s = 0, d = 1, i+1);
+     } 
    }
   
   //reset values for working out cursor position
