@@ -305,9 +305,11 @@ void timer(unsigned long millisTimer)
     Serial.println(currentMillis);
     Serial.print("Time Left: ");
     Serial.println(timeLeft);
+    #endif
+    
     inttime  = timeLeft / 1000;
     fractime = timeLeft % 1000;
-    #endif
+    
 
     // Now, inttime is the remainder after subtracting the number of seconds
     // in the number of days
